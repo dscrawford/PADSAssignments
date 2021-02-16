@@ -1,4 +1,4 @@
-install.packages(c('mltools'))
+install.packages(c('caret'))
 
 df <- read.csv('housing.csv')
 View(df)
@@ -21,13 +21,14 @@ lapply(colnames(df[-which(colnames(df) == 'ocean_proximity')]),
        )
 
 # One hot encode ocean
-library(mltools)
-library(data.table)
+library(caret)
 
-df$ocean_proximity
+dummy <- dummyVars(" ~ .", data=df)
+df <- data.frame(predict(dummy, newdata=df))
+
 # Create correlation plot
 M <- cor(df)
-corrplot(M, method="circle")
+corrplot(M, method="circle", tl.cex=1)
 
 # Geographical map
 # put code here
