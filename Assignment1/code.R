@@ -32,33 +32,37 @@ M <- cor(data)
 corplot <- corrplot(M, method="circle", tl.cex=1)
 cormat <- as.data.frame(corrplot(M,method = "number"))
 View(cormat)
-row.names(cormat)[abs(cormat$median_house_value) > 0.50]
+row.names(cormat)[abs(cormat$median_house_value) > 0.15]
 
 #Plots to check linearity of each var
-plot(df$longitude, df$median_house_value)
-abline(lm(df$median_house_value ~ df$longitude), lwd=3, col="red")
+plot_line <- function (x) {
+  plot(as.vector(df[[x]]),
+       as.vector(df$median_house_value),
+       main=paste('Plot of median_house_value vs ', x),
+       xlab=x,
+       ylab='median_house_value')
+  abline(lm(df$median_house_value ~ df[[x]]), lwd=3, col="red")
+}
 
-plot(df$latitude, df$median_house_value)
-abline(lm(df$median_house_value ~ df$latitude), lwd=3, col="red")
+lapply(colnames(df[-which(colnames(df) == 'median_house_value')]), 
+       FUN=plot_line
+) 
 
-plot(df$housing_median_age, df$median_house_value)
-abline(lm(df$median_house_value ~ df$housing_median_age), lwd=3, col="red")
+# Train/test split
+sample <- sample.int(n = nrow(df), size = floor(0.75 * nrow(data)), replace=F)
+train <- data[sample, ]
+test <- data[-sample, ]
 
-plot(df$total_rooms, df$median_house_value)
-abline(lm(df$median_house_value ~ df$total_rooms), lwd=3, col="red")
+lm.fit1 = lm(median_house_value~poly(median_income, 3), data=train)
+summary(lm.fit1)
 
-plot(df$total_bedrooms, df$median_house_value)
-abline(lm(df$median_house_value ~ df$total_bedrooms), lwd=3, col="red")
+lm.fit2 = lm(median_house_value~poly(median_income, 3) + ocean_proximityINLAND + ocean_proximityNEAR.BAY + total_bedrooms, data=df)
+summary(lm.fit2)
 
-plot(df$population, df$median_house_value)
-abline(lm(df$median_house_value ~ df$population), lwd=3, col="red")
+lm.fit3 = lm(median_house_value ~ (.)^2, data=df)
+summary(lm.fit3)
 
-plot(df$households, df$median_house_value)
-abline(lm(df$median_house_value ~ df$households), lwd=3, col="red")
-
-plot(df$median_income, df$median_house_value)
-abline(lm(df$median_house_value ~ df$median_income), lwd=3, col="red")
-
+with(df, tapply(median_house_value, list(median_income, ocean_proximityINLAND), mean))
 #pairs(df, col = "dodgerblue") #Takes too long for me to load
 
 # Geographical map
@@ -174,3 +178,6 @@ plot(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$
 abline(lm(df$median_house_value ~ I(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$total_rooms + df$total_bedrooms + df$population + df$households + df$ocean_proximity.1H.OCEAN + df$ocean_proximityINLAND + df$ocean_proximityISLAND + df$ocean_proximityNEAR.BAY + df$ocean_proximityNEAR.OCEAN)) , lwd=3, col="red")
 
 #info of model 8
+
+
+
