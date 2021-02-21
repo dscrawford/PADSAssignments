@@ -31,6 +31,7 @@ data = df[, -10]
 M <- cor(data)
 corplot <- corrplot(M, method="circle", tl.cex=1)
 cormat <- as.data.frame(corrplot(M,method = "number"))
+View(cormat)
 row.names(cormat)[abs(cormat$median_house_value) > 0.50]
 
 #Plots to check linearity of each var
@@ -129,7 +130,7 @@ summary(fit4)
 confint(fit4, level = 0.90)
 
 plot(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$total_rooms, df$median_house_value)
-abline(lm(df$median_house_value~ I(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$medianf_house_value)) , lwd=3, col="red")
+abline(lm(df$median_house_value~ I(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$total_rooms)) , lwd=3, col="red")
 
 #Info of model 4
 
@@ -139,7 +140,7 @@ summary(fit5)
 confint(fit5, level = 0.90)
 
 plot(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$total_rooms + df$total_bedrooms, df$median_house_value)
-abline(lm(df$median_house_value ~ I(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$medianf_house_value + df$total_bedrooms)) , lwd=3, col="red")
+abline(lm(df$median_house_value ~ I(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$total_rooms + df$total_bedrooms)) , lwd=3, col="red")
 
 #Info of model 5
 
@@ -149,7 +150,7 @@ summary(fit6)
 confint(fit6, level = 0.90)
 
 plot(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$total_rooms + df$total_bedrooms + df$population, df$median_house_value)
-abline(lm(df$median_house_value ~ I(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$medianf_house_value + df$total_bedrooms + df$population)) , lwd=3, col="red")
+abline(lm(df$median_house_value ~ I(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$total_rooms + df$total_bedrooms + df$population)) , lwd=3, col="red")
 
 #Info of model 6
 
@@ -159,7 +160,7 @@ summary(fit7)
 confint(fit7, level = 0.90)
 
 plot(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$total_rooms + df$total_bedrooms + df$population + df$households, df$median_house_value)
-abline(lm(df$median_house_value ~ I(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$medianf_house_value + df$total_bedrooms + df$population + df$households)) , lwd=3, col="red")
+abline(lm(df$median_house_value ~ I(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$total_rooms + df$total_bedrooms + df$population + df$households)) , lwd=3, col="red")
 
 #Info of model 7
 
@@ -170,6 +171,6 @@ summary(fit8)
 confint(fit8, level = 0.90)
 
 plot(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$total_rooms + df$total_bedrooms + df$population + df$households + df$ocean_proximity.1H.OCEAN + df$ocean_proximityINLAND + df$ocean_proximityISLAND + df$ocean_proximityNEAR.BAY + df$ocean_proximityNEAR.OCEAN, df$median_house_value)
-abline(lm(df$median_house_value ~ I(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$medianf_house_value + df$total_bedrooms + df$population + df$households + df$ocean_proximity.1H.OCEAN + df$ocean_proximityINLAND + df$ocean_proximityISLAND + df$ocean_proximityNEAR.BAY + df$ocean_proximityNEAR.OCEAN)) , lwd=3, col="red")
+abline(lm(df$median_house_value ~ I(df$median_income + df$longitude + df$latitude + df$housing_median_age + df$total_rooms + df$total_bedrooms + df$population + df$households + df$ocean_proximity.1H.OCEAN + df$ocean_proximityINLAND + df$ocean_proximityISLAND + df$ocean_proximityNEAR.BAY + df$ocean_proximityNEAR.OCEAN)) , lwd=3, col="red")
 
 #info of model 8
