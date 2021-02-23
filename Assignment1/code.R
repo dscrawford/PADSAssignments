@@ -5,6 +5,7 @@ View(df)
 
 require(corrplot)
 require(ggplot2)
+library(scales)
 library(caret)
 
 # Percentage of null values
@@ -57,7 +58,36 @@ lm.fit1 = lm(median_house_value~median_income, data=train)
 summary(lm.fit1)
 
 # Geographical map
-# put code here
+mhv_map = ggplot(train, aes(x = longitude, y = latitude, color = median_house_value)) +
+  geom_point(aes(size = population), alpha = 1) +
+  xlab("Longitude") +
+  ylab("Latitude") +
+  ggtitle("Median House Value wrt Population Map") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_color_distiller(palette = "Spectral", labels = comma) +
+  labs(color = "Median House Value (in $USD)", size = "Population")
+
+mi_map = ggplot(train, aes(x = longitude, y = latitude, color = median_income)) +
+  geom_point(aes(size = population), alpha = 1) +
+  xlab("Longitude") +
+  ylab("Latitude") +
+  ggtitle("Median Income wrt Population Map") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_color_distiller(palette = "Spectral", labels = comma) +
+  labs(color = "Median Income (in tens of thousands of $USD)", size = "Population")
+
+hs_map = ggplot(train, aes(x = longitude, y = latitude, color = households)) +
+  geom_point(aes(size = population), alpha = 1) +
+  xlab("Longitude") +
+  ylab("Latitude") +
+  ggtitle("Total Number of Households wrt Population Map") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_color_distiller(palette = "Spectral", labels = comma) +
+  labs(color = "Total Number of Households", size = "Population")
+
+mhv_map
+mi_map
+hs_map
 
 # According to the correlation matrix and table, we can see that median_income
 # is the only highly correlated variable with the median_house_value. We try our
