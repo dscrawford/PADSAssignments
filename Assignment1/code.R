@@ -1,6 +1,6 @@
 # install.packages(c('caret'))
 
-train <- read.csv('housing.csv')
+df <- read.csv('housing.csv')
 View(df)
 
 require(corrplot)
@@ -30,7 +30,6 @@ df <- data.frame(predict(dummy, newdata=df))
 M <- cor(data)
 corplot <- corrplot(M, method="circle", tl.cex=1)
 cormat <- as.data.frame(corrplot(M,method = "number"))
-View(cormat)
 row.names(cormat)[abs(cormat$median_house_value) > 0.15]
 
 #Plots to check linearity of each var
