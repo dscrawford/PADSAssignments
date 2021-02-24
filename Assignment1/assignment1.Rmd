@@ -16,6 +16,7 @@ df[1:10, ]
 
 ```{r}
 require(corrplot)
+library(scales)
 require(ggplot2)
 library(caret)
 ```
@@ -28,6 +29,10 @@ It shows that the only concerning null values  is total_bedrooms. We can elimina
 ```{r}
 # Remove unwanted null values
 df <- na.omit(df)
+```
+
+```{r}
+summary(df)
 ```
 
 Now view histograms of each of the variables (Aside from the categorical variable 'ocean proximity')
@@ -83,9 +88,94 @@ lapply(colnames(df[-which(colnames(df) == 'median_house_value')]),
        FUN=plot_line
 ) 
 ```
+We want to look into geographical data, since location is very important to housing value.
+
 ```{r}
-plot(df$longitude, df$latitude)
+# Geographical map
+mhv_map = ggplot(train, aes(x = longitude, y = latitude, color = median_house_value)) +
+  geom_point(aes(size = population), alpha = 1) +
+  xlab("Longitude") +
+  ylab("Latitude") +
+  ggtitle("Median House Value wrt Population Map") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_color_distiller(palette = "Spectral", labels = comma) +
+  labs(color = "Median House Value (in $USD)", size = "Population")
+mhv_map
+```
+
+```{r}
+mi_map = ggplot(train, aes(x = longitude, y = latitude, color = median_income)) +
+  geom_point(aes(size = population), alpha = 1) +
+  xlab("Longitude") +
+  ylab("Latitude") +
+  ggtitle("Median Income wrt Population Map") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_color_distiller(palette = "Spectral", labels = comma) +
+  labs(color = "Median Income (in tens of thousands of $USD)", size = "Population")
+mi_map
+```
+
+```{r}
+hs_map = ggplot(train, aes(x = longitude, y = latitude, color = households)) +
+  geom_point(aes(size = population), alpha = 1) +
+  xlab("Longitude") +
+  ylab("Latitude") +
+  ggtitle("Total Number of Households wrt Population Map") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_color_distiller(palette = "Spectral", labels = comma) +
+  labs(color = "Total Number of Households", size = "Population")
+hs_map
+```
+```{r}
+library(plotly)
+
+fig <- plot_ly(x = df$longitude, y = df$latitude, z = df$households)
+```
+
+```{r}
+fig %>% add_histogram2d(xbins=100, ybins=100, nbinsx=100, nbinsy=100, colorscale='Hot', histfunc='sum')
 ```
 
 
+
+Split data in train/test split to test for over fitting.
+```{r}
+# Train/test split
+sample <- sample.int(n = nrow(df), size = floor(0.75 * nrow(df)), replace=F)
+train <- df[sample, ]
+test <- df[-sample, ]
+```
+
+```{r}
+# Starting fits based on information
+# First first based on median income
+lm.fit1 = lm(median_house_value~median_income, data=train)
+summary(lm.fit1)
+```
+
+
+```{r}
+fit1 <- lm(train$median_house_value ~ train$median_income, train)
+summary(fit1)
+confint(fit1, level = 0.90)
+```
+
+
+```{r}
+plot(fit1)
+```
+
+```{r}
+# Next model (ocean proximity)
+fit2 <- lm(median_house_value ~ ., train)
+summary(fit2)
+confint(fit2, level = 0.90)
+```
+```{r}
+fit3 <- lm(median_house_value ~ (.)^2, train)
+summary(fit3)
+```
+```{r}
+plot(fit3)
+```
 

@@ -106,3 +106,5 @@ confint(fit.all, level = 0.90)
 fit2 <- lm(median_house_value ~ (.)^2, train)
 summary(fit2)
 
+
+
