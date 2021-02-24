@@ -1,7 +1,9 @@
 ---
 title: "CS6301.003 Assignment 1"
 author: "Daniel Crawford, Abhishek Thurlapati, Pragya Karki"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 
@@ -100,9 +102,10 @@ lapply(colnames(df[-which(colnames(df) == 'median_house_value')]),
 ```
 We want to look into geographical data, since location is very important to housing value.
 
+houses close to ocean have above average value
 ```{r}
 # Geographical map
-mhv_map = ggplot(train, aes(x = longitude, y = latitude, color = median_house_value)) +
+mhv_map = ggplot(df, aes(x = longitude, y = latitude, color = median_house_value)) +
   geom_point(aes(size = population), alpha = 1) +
   xlab("Longitude") +
   ylab("Latitude") +
@@ -113,8 +116,9 @@ mhv_map = ggplot(train, aes(x = longitude, y = latitude, color = median_house_va
 mhv_map
 ```
 
+median_income is above average in properties near ocean fronts.
 ```{r}
-mi_map = ggplot(train, aes(x = longitude, y = latitude, color = median_income)) +
+mi_map = ggplot(df, aes(x = longitude, y = latitude, color = median_income)) +
   geom_point(aes(size = population), alpha = 1) +
   xlab("Longitude") +
   ylab("Latitude") +
@@ -125,8 +129,9 @@ mi_map = ggplot(train, aes(x = longitude, y = latitude, color = median_income)) 
 mi_map
 ```
 
+coastal region is densely populated based on the number of household, which does help contribute to the house_value
 ```{r}
-hs_map = ggplot(train, aes(x = longitude, y = latitude, color = households)) +
+hs_map = ggplot(df, aes(x = longitude, y = latitude, color = households)) +
   geom_point(aes(size = population), alpha = 1) +
   xlab("Longitude") +
   ylab("Latitude") +
