@@ -37,14 +37,17 @@ From the above information, we see that the only variable to have null values is
 ```{r}
 # Remove unwanted null values
 df <- na.omit(df)
+
 ```
-Displaying the summary statistics of each variable in the dataset
+Displaying the summary statistics of each variable in the dataset to get a better insight into the data
 ```{r}
 # Shows summary statistics of the dataset
 summary(df)
+
 ```
 Now view histograms of each of the variables (Aside from the categorical variable 'ocean proximity').
 ```{r, message=FALSE, results='hide'}
+# Displays the histograms of each variable
 layout(matrix(1:9, 3, 3, byrow=TRUE))
 lapply(colnames(df[-which(colnames(df) == 'ocean_proximity')]), 
        FUN=function(x) hist(as.vector(df[[x]]),
@@ -78,14 +81,14 @@ From the the data displayed above, we can see that many of these values are weak
 
 Let us search for the variables with correlation above 0.5 to median_house_value.
 ```{r}
+# Prints highly correlated values
 row.names(cormat)[abs(cormat$median_house_value) > 0.5]
 ```
-Only 'median_income' has a correlation with median_house_value other than itself. This variable will play a key factor in our predictive linear regression model. 
+Only median_income has a correlation with median_house_value other than itself. This variable will play a key factor in our predictive linear regression model. 
 
 We have created some plots to further visualize the linearity of each variable to the median_house_value. 
 ```{r}
 #Plots to check linearity of each var
-
 plot_line <- function (x) {
   plot(as.vector(df[[x]]),
        as.vector(df$median_house_value),
@@ -100,6 +103,9 @@ lapply(colnames(df[-which(colnames(df) == 'median_house_value')]),
        FUN=plot_line
 ) 
 ```
+(Review this analysis) Although many of the variables share a linear relationship with median_house_value, the few outliers and distribution of points lessen the linearity. We saw this with the low correlation values presented earlier, but now we are able to see the distribution of the points and determine the reasoning for this issue. Even through these issues, we can see the general linear relationship among the variables and median_house_value. Therefore we can say that creating a linear model with the 'lm' function is the right choice. 
+
+
 We want to look into geographical data, since location is very important to housing value.
 
 houses close to ocean have above average value
@@ -115,7 +121,7 @@ mhv_map = ggplot(df, aes(x = longitude, y = latitude, color = median_house_value
   labs(color = "Median House Value (in $USD)", size = "Population")
 mhv_map
 ```
-
+(We may need some more analysis on the plot?)
 median_income is above average in properties near ocean fronts.
 ```{r}
 mi_map = ggplot(df, aes(x = longitude, y = latitude, color = median_income)) +
@@ -128,7 +134,7 @@ mi_map = ggplot(df, aes(x = longitude, y = latitude, color = median_income)) +
   labs(color = "Median Income (in tens of thousands of $USD)", size = "Population")
 mi_map
 ```
-
+(We may need some more analysis on the plot?)
 coastal region is densely populated based on the number of household, which does help contribute to the house_value
 ```{r}
 hs_map = ggplot(df, aes(x = longitude, y = latitude, color = households)) +
@@ -146,51 +152,83 @@ library(plotly)
 
 fig <- plot_ly(x = df$longitude, y = df$latitude, z = df$households)
 ```
-
+(We may need some more analysis on the plot?)
 ```{r}
 fig %>% add_histogram2d(xbins=100, ybins=100, nbinsx=100, nbinsy=100, colorscale='Hot', histfunc='sum')
 ```
+(We may need some more analysis on the plot?)
 
 
-
-Split data in train/test split to test for over fitting.
+Split data in train/test split to test for over fitting. Doing this also allows us to test our model for general accuracy error percentage. 
 ```{r}
 # Train/test split
 sample <- sample.int(n = nrow(df), size = floor(0.75 * nrow(df)), replace=F)
 train <- df[sample, ]
 test <- df[-sample, ]
 ```
+LINEAR MODELS
 
+We decided we are ready to create models to predict the median_house_value. We first set up a base model with only the highly correlated predictors, and in our case the only one is median_income. 
 ```{r}
-# Starting fits based on information
-# First first based on median income
-lm.fit1 = lm(median_house_value~median_income, data=train)
-summary(lm.fit1)
-```
+#Create base model with median_income
+fit1 <- lm(median_house_value ~ median_income, data = train)
 
-
-```{r}
-fit1 <- lm(train$median_house_value ~ train$median_income, train)
+#Display model summary
 summary(fit1)
+
+#Test the confidence of the model
 confint(fit1, level = 0.90)
-```
 
-
-```{r}
+#Plot the model
 plot(fit1)
-```
 
+```
+(Review this analysis) Our first model with only highly correlated values yielded a adjusted r^2 of .4764. This value measures the goodness of the model. We will want to see if adding other variables can improve the adjusted r^2 and help improve the model. In addition, we can also see that the median_income is a significant predictor with a high t-val and a low p-val. The large range in residuals indicate errors are present. 
+
+Now we test to see if adding all the predictors will improve our model. 
 ```{r}
-# Next model (ocean proximity)
+# Create model with all predictors
 fit2 <- lm(median_house_value ~ ., train)
+
+#Display model summary
 summary(fit2)
+
+#Test the confidence of the model
 confint(fit2, level = 0.90)
+
+#Plot the model
+plot(fit2)
 ```
+(Review this analysis) We can see that the adjusted r^2 in the second model is much higher than our first model with .646. This tells us that even the added predictors were weakly correlated, they helped improve our regression model. All of them except ocean_proximity.1H.OCEAN had 3 significance stars. Our model seems to be improving. 
+
+We create a third model with the 2-way interactions between the variables to determine if any combination of predictors can help improve our model. 
 ```{r}
-fit3 <- lm(median_house_value ~ (.)^2, train)
+# Create model with all 2-way interactions
+fit3 <- lm(median_house_value ~ (.)^2, data = train)
+
+#Display model summary
 summary(fit3)
-```
-```{r}
+
+#Test the confidence of the model
+confint(fit3, level = 0.90)
+
+#Plot the model
 plot(fit3)
 ```
+In our third model, the adjusted r^2 goes up again to .7016. Some of the interactions we created were significant to the model, but some have little significance. This model seems to be better than our second model.
 
+We can try to clean this model up further and remove the less significant interactions. 
+```{r}
+# Create model with interactions cleaned up
+fit4 <- lm(median_house_value ~ (.)^2 - , data = train)
+
+#Display model summary
+summary(fit4)
+
+#Test the confidence of the model
+confint(fit4, level = 0.90)
+
+#Plot the model
+plot(fit4)
+```
+(ANALYSIS OF 4th model)
