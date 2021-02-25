@@ -75,7 +75,7 @@ Now we create a correlation plot and display correlation values to determine the
 M <- cor(df)
 corplot <- corrplot(M, method="circle", tl.cex=0.5)
 cormat <- as.data.frame(corrplot(M,method = "number", tl.cex=0.5, cl.cex = 0.5, number.cex= 0.6))
-M
+
 ```
 From the the data displayed above, we can see that many of these values are weakly correlated with the median house value, but we still see some linearity. Likely we will need to introduce a strategy to overcome these weak correlations.
 
@@ -105,13 +105,38 @@ lapply(colnames(df[-which(colnames(df) == 'median_house_value')]),
 ```
 (Review this analysis) Although many of the variables share a linear relationship with median_house_value, the few outliers and distribution of points lessen the linearity. We saw this with the low correlation values presented earlier, but now we are able to see the distribution of the points and determine the reasoning for this issue. Even through these issues, we can see the general linear relationship among the variables and median_house_value. Therefore we can say that creating a linear model with the 'lm' function is the right choice. 
 
+Below we attempt to remove some outliers at the risk of reduce the number of data entries to ensure better linearity with the variables. 
+```{r}
+# Cleanup data by removing some outliers
+df2 <-  subset(df, population < 25000)
+df2 <-  subset(df2, total_rooms < 30000)
+df2 <-  subset(df2, total_bedrooms < 6000)
+df2 <-  subset(df2, households < 6000)
 
+#Checks to make sure they are deleted
+summary(df2)
+
+#Plots to check linearity of each var
+plot_line <- function (x) {
+  plot(as.vector(df2[[x]]),
+       as.vector(df2$median_house_value),
+       main=paste(x),
+       xlab=x,
+       ylab='median_house_value')
+  abline(lm(df2$median_house_value ~ df2[[x]]), lwd=3, col="red")
+}
+
+layout(matrix(c(1:col(df2)), 7, 2, byrow=TRUE), widths=rep(1, ncol(df2)), heights=rep(1.5, ncol(df2)))
+lapply(colnames(df2[-which(colnames(df2) == 'median_house_value')]), 
+       FUN=plot_line
+) 
+```
 We want to look into geographical data, since location is very important to housing value.
 
 houses close to ocean have above average value
 ```{r}
 # Geographical map
-mhv_map = ggplot(df, aes(x = longitude, y = latitude, color = median_house_value)) +
+mhv_map = ggplot(df2, aes(x = longitude, y = latitude, color = median_house_value)) +
   geom_point(aes(size = population), alpha = 1) +
   xlab("Longitude") +
   ylab("Latitude") +
@@ -124,7 +149,7 @@ mhv_map
 (We may need some more analysis on the plot?)
 median_income is above average in properties near ocean fronts.
 ```{r}
-mi_map = ggplot(df, aes(x = longitude, y = latitude, color = median_income)) +
+mi_map = ggplot(df2, aes(x = longitude, y = latitude, color = median_income)) +
   geom_point(aes(size = population), alpha = 1) +
   xlab("Longitude") +
   ylab("Latitude") +
@@ -137,7 +162,7 @@ mi_map
 (We may need some more analysis on the plot?)
 coastal region is densely populated based on the number of household, which does help contribute to the house_value
 ```{r}
-hs_map = ggplot(df, aes(x = longitude, y = latitude, color = households)) +
+hs_map = ggplot(df2, aes(x = longitude, y = latitude, color = households)) +
   geom_point(aes(size = population), alpha = 1) +
   xlab("Longitude") +
   ylab("Latitude") +
@@ -147,24 +172,15 @@ hs_map = ggplot(df, aes(x = longitude, y = latitude, color = households)) +
   labs(color = "Total Number of Households", size = "Population")
 hs_map
 ```
-```{r}
-library(plotly)
-
-fig <- plot_ly(x = df$longitude, y = df$latitude, z = df$households)
-```
 (We may need some more analysis on the plot?)
-```{r}
-fig %>% add_histogram2d(xbins=100, ybins=100, nbinsx=100, nbinsy=100, colorscale='Hot', histfunc='sum')
-```
-(We may need some more analysis on the plot?)
-
 
 Split data in train/test split to test for over fitting. Doing this also allows us to test our model for general accuracy error percentage. 
 ```{r}
 # Train/test split
-sample <- sample.int(n = nrow(df), size = floor(0.75 * nrow(df)), replace=F)
-train <- df[sample, ]
-test <- df[-sample, ]
+set.seed(123)
+sample <- sample.int(n = nrow(df2), size = floor(0.75 * nrow(df2)), replace=F)
+train <- df2[sample, ]
+test <- df2[-sample, ]
 ```
 LINEAR MODELS
 
@@ -190,13 +206,13 @@ Now we test to see if adding all the predictors will improve our model.
 # Create model with all predictors
 fit2 <- lm(median_house_value ~ ., train)
 
-#Display model summary
+# Display model summary
 summary(fit2)
 
-#Test the confidence of the model
+# Test the confidence of the model
 confint(fit2, level = 0.90)
 
-#Plot the model
+# Plot the model
 plot(fit2)
 ```
 (Review this analysis) We can see that the adjusted r^2 in the second model is much higher than our first model with .646. This tells us that even the added predictors were weakly correlated, they helped improve our regression model. All of them except ocean_proximity.1H.OCEAN had 3 significance stars. Our model seems to be improving. 
@@ -206,29 +222,30 @@ We create a third model with the 2-way interactions between the variables to det
 # Create model with all 2-way interactions
 fit3 <- lm(median_house_value ~ (.)^2, data = train)
 
-#Display model summary
+# Display model summary
 summary(fit3)
 
-#Test the confidence of the model
+# Test the confidence of the model
 confint(fit3, level = 0.90)
 
-#Plot the model
+# Plot the model
 plot(fit3)
+
 ```
 In our third model, the adjusted r^2 goes up again to .7016. Some of the interactions we created were significant to the model, but some have little significance. This model seems to be better than our second model.
 
 We can try to clean this model up further and remove the less significant interactions. 
 ```{r}
 # Create model with interactions cleaned up
-fit4 <- lm(median_house_value ~ (.)^2 - , data = train)
+fit4 <- lm(median_house_value ~ (.)^2 - population - households - longitude:population - longitude:households - latitude:households - total_rooms:total_bedrooms - total_bedrooms:median_income - population:households - households:median_income, data = train)
 
-#Display model summary
+# Display model summary
 summary(fit4)
 
-#Test the confidence of the model
+# Test the confidence of the model
 confint(fit4, level = 0.90)
 
-#Plot the model
+# Plot the model
 plot(fit4)
 ```
 (ANALYSIS OF 4th model)
