@@ -1,9 +1,7 @@
 ---
 title: "CS6301.003 Assignment 1"
 author: "Daniel Crawford, Abhishek Thurlapati, Pragya Karki"
-output:
-  html_document:
-    df_print: paged
+output: html_notebook
 ---
 
 
@@ -129,51 +127,59 @@ df <- df2
 ```
 After removing some outliers in population, total_rooms, total_bedrooms, and households, we can see that the linearity has become more prominent and the distributions look a little better.
 
-We also want to look into geographical data, since location is very important to housing value.
+We want to look into geographical data, since location is very important to housing value. Hence, we start plotting our coordinates for each entry where the **color** feature are varied between *median_house_value*, *median_income*, and *households* while maintaining **size** as *population*. 
 ```{r}
-# Geographical map
 mhv_map = ggplot(df, aes(x = longitude, y = latitude, color = median_house_value)) +
   geom_point(aes(size = population), alpha = 1) +
   xlab("Longitude") +
   ylab("Latitude") +
-  ggtitle("Median House Value wrt Population Map") +
+  ggtitle("Median House Value with Population") +
   theme(plot.title = element_text(hjust = 0.5)) +
   scale_color_distiller(palette = "Spectral", labels = comma) +
   labs(color = "Median House Value (in $USD)", size = "Population")
 mhv_map
 ```
-We see from the first map that houses close to ocean have above average value.
-
-(We may need some more analysis on the plot1)
-
-median_income is above average in properties near ocean fronts.
+From the above plot, we can see that the coastal properties i.e., the ones with close ocean proximity have higher median house value than inland properties. As we move inland, property values gradually drop below $USD 200,000.
 ```{r}
-mi_map = ggplot(df, aes(x = longitude, y = latitude, color = median_income)) +
+mi_map = ggplot(df, aes(x = longitude, y = latitude, color = median_income*10000)) +
   geom_point(aes(size = population), alpha = 1) +
   xlab("Longitude") +
   ylab("Latitude") +
-  ggtitle("Median Income wrt Population Map") +
+  ggtitle("Median Income with Population") +
   theme(plot.title = element_text(hjust = 0.5)) +
   scale_color_distiller(palette = "Spectral", labels = comma) +
-  labs(color = "Median Income (in tens of thousands of $USD)", size = "Population")
+  labs(color = "Median Income (in $USD)", size = "Population")
 mi_map
 ```
-(We may need some more analysis on the plot2)
+From the above plot, we can observe that most households in California have a median income of $USD 50,000 or less. We also notice that the coastal region tends to have above average median income, which gradually declines as we move inland. This is similar to median house value, which we observed in previous plot. 
 
-coastal region is densely populated based on the number of household, which does help contribute to the house_value
+We also observe how population density in coastal region affects the median income of this region. Densely populated coastal regions tend to have higher median income than the sparsely populated ones.
 ```{r}
 hs_map = ggplot(df, aes(x = longitude, y = latitude, color = households)) +
   geom_point(aes(size = population), alpha = 1) +
   xlab("Longitude") +
   ylab("Latitude") +
-  ggtitle("Total Number of Households wrt Population Map") +
+  ggtitle("Number of Households with Population") +
   theme(plot.title = element_text(hjust = 0.5)) +
   scale_color_distiller(palette = "Spectral", labels = comma) +
-  labs(color = "Total Number of Households", size = "Population")
+  labs(color = "Number of Households", size = "Population")
 hs_map
 ```
-(We may need some more analysis on the plot3)
+From the above plot, we can see that densely populated areas tend have higher number of households. We also notice that number of households are far greater in and around coastal regions, where each region contains more than a 1,000 households.
 
+Based on these three plots, we can observe the role played by population of a region when it comes to determining median house value, median income, and number of households for that region. In most cases, we have observed a positive correlation between *population* and *median_house_value*, *median_income*, and *households*.
+```{r}
+mhi_map = ggplot(df, aes(x = longitude, y = latitude, color = median_house_value)) +
+  geom_point(aes(size = median_income*10000), alpha = 1) +
+  xlab("Longitude") +
+  ylab("Latitude") +
+  ggtitle("Median House Value with Median Income") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  scale_color_distiller(palette = "Spectral", labels = comma) +
+  labs(color = "Median Hosue Value (in $USD)", size = "Median Income (in $USD)")
+mhi_map
+```
+This final plot helps illustrate the high correlation between *median_house_value* and *median_income* based on our preliminary analysis of *housing* dataset.
 
 Split data in train/test split to test for over fitting. Doing this also allows us to test our model for general error metrics. 
 ```{r}
