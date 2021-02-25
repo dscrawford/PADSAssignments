@@ -10,7 +10,7 @@ output:
 ```{r}
 # install.packages(c('caret'))
 ```
-Loading all the required packages for the program
+Loading all the required packages for the program.
 ```{r}
 #Loads packages
 require(corrplot)
@@ -18,34 +18,29 @@ library(scales)
 require(ggplot2)
 library(caret)
 ```
-Loading in the 'California Housing Dataset' we are working with 
+Loading in the 'California Housing Dataset' we are working with.
 ```{r}
 # Loads the dataset
 df <- read.csv('https://raw.githubusercontent.com/dscrawford/PADSAssignments/main/Assignment1/housing.csv')
 df[1:10, ]
 ```
-
 Looking at the data, we know that we need to predict median_house_value using the other variable as predictors. We are given median values based on blocks of houses located at a certain (longitude,latitude). We are going to be creating a regression model and predicting a continuous variable. 
 
-Displaying the number of null values and null value percentage of each variable in the dataset
+Displaying the number of null values and null value percentage of each variable in the dataset.
 ```{r}
 # Percentage of null values
 sum(is.na(df))
 sapply(df, function(x) sum(is.na(x))) / nrow(df)
-
 ```
-From the above information, we see that the only variable to have null values is total_bedrooms with 207 null values. Because we cannot estimate the total_bedrooms in a block based on the other blocks, we can handle the null values by eliminating them to allow our predictive model to run better. We do this because, using the median, mean, or mode of the other blocks would would lead to false insights about this block of houses.
+From the above information, we see that the only variable to have null values is total_bedrooms with 207 null values. Because we cannot estimate the total_bedrooms in a block based on the other blocks, we can handle the null values by eliminating them to allow our predictive model to run better. We do this because using the median, mean, or mode of the other blocks would would lead to false insights about this block of houses.
 ```{r}
 # Remove unwanted null values
 df <- na.omit(df)
-
 ```
-
 Displaying the summary statistics of each variable in the dataset to get a better insight into the data
 ```{r}
 # Shows summary statistics of the dataset
 summary(df)
-
 ```
 Now view histograms of each of the variables (Aside from the categorical variable 'ocean proximity').
 ```{r, message=FALSE, results='hide'}
@@ -59,11 +54,7 @@ lapply(colnames(df[-which(colnames(df) == 'ocean_proximity')]),
                             )
        )
 ```
-
-Above is the histograms of all the variables available to us. We can see that most of these variables are normally distributed, but some have discrepancies. Some histograms are skewed. 
-Housing median age seems to have a big jump in frequency of age at specific points in time. It is likely that something influenced more housing construction in these time periods, so it is an odd variable. Lastly, it looks like they capped the age at about 52 years old, likely because the data was not tracked before a certain time well.
-Longitude and Latitude being used is expected to be weird since they are location points. We can see though that the most densely populated areas will dominate our data set.
-Our target, median house value, has a cap similar to housing median age. Because of this, these outliers can hurt our results pretty badly on a linear fit.
+Above are the histograms of all the variables in the dataset that are potential predictors. We can see that most of these variables are normally distributed, but some have discrepancies. Some histograms are skewed. Total_rooms, total_bedrooms, populations, households, and median_income are all slightly right skewed. Housing_median_age seems to have a big jump in frequency of age at specific points in time. It is likely that something influenced more housing construction in these time periods, so it is an odd variable. Lastly, it looks like they capped the age at about 52 years old, likely because the data was not tracked before a certain time well. Longitude and Latitude being used is expected to be weird since they are location points. We can see though that the most densely populated areas will dominate our data set. Our target, median_house_value, has a cap similar to housing_median_age. These capped values may affect results.
 
 We also want to see how useful the categorical variable Ocean Proximity is, so we are going to transform it into dummy variables. This allows for our model to work with this variable easier.
 ```{r}
@@ -72,14 +63,12 @@ dummy <- dummyVars(" ~ .", data=df)
 df <- data.frame(predict(dummy, newdata=df))
 df[1:3, 10:ncol(df)]
 ```
-
 Now we create a correlation plot and display correlation values to determine the connection between each predictor to the predicted variable of median_house_value. 
 ```{r, message=FALSE, results='hide'}
 #Create a correlation plot and display correlation values
 M <- cor(df)
 corplot <- corrplot(M, method="circle", tl.cex=0.5)
 cormat <- as.data.frame(corrplot(M,method = "number", tl.cex=0.5, cl.cex = 0.5, number.cex= 0.6))
-
 ```
 From the the data displayed above, we can see that many of these values are weakly correlated with the median house value, but we still see some linearity. Likely we will need to introduce a strategy to overcome these weak correlations.
 
@@ -88,7 +77,7 @@ Let us search for the variables with correlation above 0.5 to median_house_value
 # Prints highly correlated values
 row.names(cormat)[abs(cormat$median_house_value) > 0.5]
 ```
-Only median_income has a correlation with median_house_value other than itself. This variable will play a key factor in our predictive linear regression model. 
+Only median_income has a high correlation with median_house_value other than itself. This variable will play a key factor in our predictive linear regression model. 
 
 We have created some plots to further visualize the linearity of each variable to the median_house_value. 
 ```{r, message=FALSE, results='hide'}
@@ -107,9 +96,9 @@ lapply(colnames(df[-which(colnames(df) == 'median_house_value')]),
        FUN=plot_line
 ) 
 ```
-Although many of the variables share a linear relationship with median_house_value, the few outliers and distribution of points lessen the linearity. We saw this with the low correlation values presented earlier, but now we are able to see the distribution of the points and determine the reasoning for this issue. Even through these issues, we can see the general linear relationship among the variables and median_house_value. Therefore we can say that creating a linear model with the 'lm' function is the right choice. 
+Although many of the variables share a linear relationship with median_house_value, a few outliers and distribution of points lessen the linearity. We saw this with the low correlation values presented earlier, but now we are able to see the distribution of the points and determine the reasoning for this issue. Even through these issues, we can see the general linear relationship among the variables and median_house_value. Therefore we can say that creating a linear model with the 'lm()' function is the right choice. 
 
-Below we attempt to remove some outliers at the risk of reduce the number of data entries to ensure better linearity with the variables. 
+Below we attempt to remove some outliers at the risk of reducing the number of data entries to ensure better linearity with the variables. 
 ```{r}
 # Cleanup data by removing some outliers
 df2 <-  subset(df, population < 25000)
@@ -135,11 +124,12 @@ lapply(colnames(df2[-which(colnames(df2) == 'median_house_value')]),
        FUN=plot_line
 ) 
 
+# Finalizes the new dataset with removed outliers
 df <- df2
 ```
-We want to look into geographical data, since location is very important to housing value.
+After removing some outliers in population, total_rooms, total_bedrooms, and households, we can see that the linearity has become more prominent and the distributions look a little better.
 
-houses close to ocean have above average value
+We also want to look into geographical data, since location is very important to housing value.
 ```{r}
 # Geographical map
 mhv_map = ggplot(df, aes(x = longitude, y = latitude, color = median_house_value)) +
@@ -152,8 +142,10 @@ mhv_map = ggplot(df, aes(x = longitude, y = latitude, color = median_house_value
   labs(color = "Median House Value (in $USD)", size = "Population")
 mhv_map
 ```
+We see from the first map that houses close to ocean have above average value.
 
-(We may need some more analysis on the plot?)
+(We may need some more analysis on the plot1)
+
 median_income is above average in properties near ocean fronts.
 ```{r}
 mi_map = ggplot(df, aes(x = longitude, y = latitude, color = median_income)) +
@@ -166,8 +158,8 @@ mi_map = ggplot(df, aes(x = longitude, y = latitude, color = median_income)) +
   labs(color = "Median Income (in tens of thousands of $USD)", size = "Population")
 mi_map
 ```
+(We may need some more analysis on the plot2)
 
-(We may need some more analysis on the plot?)
 coastal region is densely populated based on the number of household, which does help contribute to the house_value
 ```{r}
 hs_map = ggplot(df, aes(x = longitude, y = latitude, color = households)) +
@@ -180,11 +172,10 @@ hs_map = ggplot(df, aes(x = longitude, y = latitude, color = households)) +
   labs(color = "Total Number of Households", size = "Population")
 hs_map
 ```
+(We may need some more analysis on the plot3)
 
-(We may need some more analysis on the plot?)
 
-
-Split data in train/test split to test for over fitting. Doing this also allows us to test our model for general accuracy error percentage. 
+Split data in train/test split to test for over fitting. Doing this also allows us to test our model for general error metrics. 
 ```{r}
 # Train/test split
 set.seed(123)
@@ -192,9 +183,6 @@ sample <- sample.int(n = nrow(df), size = floor(0.75 * nrow(df)), replace=F)
 train <- df[sample, ]
 test <- df[-sample, ]
 ```
-
-LINEAR MODELS
-
 We decided we are ready to create models to predict the median_house_value. We first set up a base model with only the highly correlated predictors, and in our case the only one is median_income. 
 ```{r}
 #Create base model with median_income
@@ -202,9 +190,8 @@ fit1 <- lm(median_house_value ~ median_income, data = train)
 
 #Display model summary
 summary(fit1)
-
 ```
-Our first model with only highly correlated values yielded a adjusted r^2 of .4764. This value measures the goodness of the model fit. We will want to see if adding other variables can improve the adjusted r^2 and help improve the model. In addition, we can also see that the median_income is a significant predictor with a high t-val and a low p-val. The large range in residuals indicate errors are present. 
+Our first model with only highly correlated values yielded a adjusted r^2 of .4756. This value measures the goodness of the model fit. We will want to see if adding other variables can improve the adjusted r^2 and help improve the model. In addition, we can also see that the median_income is a significant predictor with a high t-val and a low p-val. The large range in residuals indicate errors are present. 
 
 Now we test to see if adding all the predictors will improve our model. 
 ```{r}
@@ -214,14 +201,13 @@ fit2 <- lm(median_house_value ~ ., train)
 #Display model summary
 summary(fit2)
 ```
-(Review this analysis) We can see that the adjusted r^2 in the second model is much higher than our first model with .646. This tells us that even the added predictors were weakly correlated, they helped improve our regression model. All of them except ocean_proximity.1H.OCEAN had 3 significance stars. Our model seems to be improving. 
+We can see that the adjusted r^2 in the second model is much higher than our first model with .652. This tells us that even the added predictors were weakly correlated, they helped improve our regression model. All of them except ocean_proximity.1H.OCEAN had 3 significance stars. Our model seems to be improving. 
 
-We create a third model with the 2-way interactions between the variables to determine if any combination of predictors can help improve our model. 
-
-With these 2-day interactions, we can also account for longitude and latitude in a multiplicative way. Unfortunately, this can have issues, (EX: 6\*2 = 12 and 1 \* 12 = 12). Regardless, this can still help pinpoint location.
+We create a third model with the 2-way interactions between the variables to determine if any combination of predictors can help improve our model. With these 2-day interactions, we can also account for longitude and latitude in a multiplicative way. Unfortunately, this can have issues, (EX: 6\*2 = 12 and 1 \* 12 = 12). Regardless, this can still help pinpoint location.
 
 One final observation: ocean_proximityNEAR.OCEAN is not useful, so we will remove it.
 ```{r}
+# Removes unnecessary variable
 train = train[which(colnames(train) != "ocean_proximityNEAR.OCEAN")]
 
 # Create model with all 2-way interactions
@@ -230,31 +216,27 @@ fit3 <- lm(median_house_value ~ (.)^2, data = train)
 #Display model summary
 summary(fit3)
 ```
-In our third model, the adjusted r^2 goes up again to .7016. Some of the interactions we created were significant to the model, but some have little significance. This model seems to be better than our second model.
+In our third model, the adjusted r^2 goes up again to .7026. Some of the interactions we created were significant to the model, but some have little significance. This model seems to be better than our second model. We can try to clean this model up further and remove the less significant interactions.
 
-We can try to clean this model up further and remove the less significant interactions.
+Another observation we made was that there were 4 very highly correlated variables: total_rooms, total_bedrooms, population, households. In terms of correlation, total_rooms has the highest value so we should eliminate the other 3 to prevent multicollinearity.
 
-Another observation we made was that there were 4 very highly correlated variables: total_rooms, total_bedrooms, population, households.
-In terms of correlation, total_rooms has the highest value so we should eliminate the other 3.
-
-Finally, while the summary is showing us NAN values for some of the interactions, R will handle this for us. So these interactions will simply not be used.
+Finally, while the summary is showing us NAN values for some of the interactions, R will handle this for us. So these interactions will simply not be used or need to be specially handled.
 ```{r, message=FALSE, results='hide'}
+# Removes variables to prevent multicollinearity problems
 rm_variables <- c("total_rooms", "total_bedrooms", "households")
 '%!in%' <- function(x,y)!('%in%'(x,y))
+
 # Create model with interactions cleaned up
 fit4 <- lm(median_house_value ~ (.)^2, data = train[,which(colnames(train) %!in% rm_variables)])
 
 #Display model summary
 summary(fit4)
 ```
-
-As we can see from this 4th model, removing the highly correlated variables seemed to only hurt our performance rather than benefit it. Therefore, we can justify keeping the variables in and keeping to model 3.
+As we can see from this 4th model, removing the highly correlated variables seemed to only hurt our performance and lower adjusted r^2 to .6425 rather than benefit it. Therefore, we can justify keeping the variables in and sticking to fit3.
 
 In this model, we want to focus more on just improving on location data. Therefore, we are going to apply a poly to the product of longitude and latitude to see if the model can understand the variables better.
 
 ```{r, message=FALSE, results='hide'}
-'%!in%' <- function(x,y)!('%in%'(x,y))
-
 # Create model with interactions cleaned up
 fit5 <- lm(median_house_value ~ poly(longitude * latitude, 5)[,2:5] + (.)^2, data = train)
 
@@ -267,5 +249,4 @@ confint(fit5, level = 0.90)
 #Plot the model
 plot(fit5)
 ```
-
-In our final model, we can see that adding more ability for the model to utilize longitude and latitude seemed to help a lot. We improved to an adjusted R-squared of 0.7131. Ultimately, what we can see from this model is that we need more representational power, and likely a linear model is not quite powerful enough. As we keep adding different interpretations of the data, we see more improvements.
+In our final model, we can see that adding more ability for the model to utilize longitude and latitude seemed to help a lot. We improved to an adjusted R-squared of 0.7129. Ultimately, what we can see from this model is that we need more representational power or more data entries to learn from, and likely a linear model is not quite powerful enough. As we keep adding different interpretations of the data, we see more improvements. 
