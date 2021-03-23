@@ -1,0 +1,130 @@
+---
+title: "CS 6301 Assignment 2"
+output: html_notebook
+---
+```{r}
+cifar_dir <- "cifar-10-batches-bin/"
+```
+
+```{r}
+if (!dir.exists(cifar_dir)) {
+  download.file('http://www.cs.utoronto.ca/~kriz/cifar-10-binary.tar.gz', 'cifar-10.tar.gz')
+  untar('cifar-10.tar.gz')
+}
+```
+
+```{r}
+if (!("ANN2" %in% installed.packages())) {
+  install.packages("ANN2")
+}
+```
+
+
+It is hard to read a massive dataset like cifar10, so we will take portions of it instead for this part.
+
+```{r}
+batches_to_read <- 2
+```
+
+```{r}
+# CIFAR-10: 32x32 images with 3 channels (RGB), 60000 rows in total.
+cifar10 <- matrix(ncol = 32 * 32 * 3, nrow = 10000 * batches_to_read)
+cifar10_labels <- rep(0, 10000 * batches_to_read)
+```
+
+```{r}
+read_cifar_batch <- function (file) {
+  f <- file(file, "rb")
+  
+  images <- matrix(ncol=32 * 32 * 3, nrow=10000)
+  labels <- rep(0, 10000)
+  for (i in 1:10000) {
+    labels[i] <- readBin(f, "integer", size=1, n=1, endian="little", signed=FALSE)
+    images[i, ] <- readBin(f, "integer", n = 32 * 32 * 3, size = 1, signed=FALSE, endian = "little")
+  }
+  close(f)
+  
+  list(
+    images = images,
+    labels = labels
+  )
+}
+```
+
+```{r}
+for (i in 1:batches_to_read) {
+  if (i == 6) {
+    file <- paste(cifar_dir,"test_batch", ".bin", sep="")
+  }
+  else {
+    file <- paste(cifar_dir, "data_batch_", i, ".bin", sep="")
+  }
+  print(paste("Reading ", file))
+  batch <- read_cifar_batch(file)
+  batch_range <- ((i - 1) * 10000 + 1):(i * 10000)
+  cifar10[batch_range, ] <- batch$images
+  cifar10_labels[batch_range] <- batch$labels
+}
+```
+
+```{r}
+label_names <- read.table("cifar-10-batches-bin/batches.meta.txt")
+```
+
+```{r}
+df <- data.frame(cifar10, label=as.factor(cifar10_labels))
+```
+
+
+```{r}
+df[,1:(32 * 32 * 3)] <- df[,1:(32*32*3)] / 255
+```
+
+```{r}
+split_index = as.integer(nrow(df) * 0.8)
+```
+
+
+```{r}
+train <- df[1:split_index, ]
+test <- df[split_index:nrow(df), ]
+```
+
+```{r}
+df[split_index:nrow(df),]
+```
+
+```{r}
+library(ANN2)
+```
+
+```{r}
+feature_cols <- 1:(32*32*3)
+label_col <- 32*32*3+1
+```
+
+
+```{r}
+N <- nrow(train)
+X <- train[1:N,feature_cols]
+y <- train[1:N,label_col]
+```
+
+Despite using a deep learning library, I am not using any hidden layers to avoid taking advantage
+of any deep learning capabilities. However, batching is useful because it helps handle a larger part
+of the dataset.
+```{r}
+nn <- neuralnetwork(X, y, NA, regression = FALSE, batch.size = 64, n.epochs = 20)
+```
+
+```{r}
+test_pred <- max.col(predict(nn, test[, feature_cols])$probabilities)
+test_true <- test[,label_col]
+mean(test_pred == test_true)
+```
+
+Unfortunately, we did not make any good predictions with this setup. It is clear we need much more representational power in order to represent this data set.
+
+
+
+
