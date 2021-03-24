@@ -1,7 +1,9 @@
 ---
 title: "CS 6301 Assignment 2"
 output: html_notebook
+author: "Daniel Crawford (dsc160130), Abhishek Thurlapati (vxt160630)"
 ---
+
 ```{r}
 cifar_dir <- "cifar-10-batches-bin/"
 ```
@@ -23,7 +25,7 @@ if (!("ANN2" %in% installed.packages())) {
 It is hard to read a massive dataset like cifar10, so we will take portions of it instead for this part.
 
 ```{r}
-batches_to_read <- 2
+batches_to_read <- 1
 ```
 
 ```{r}
@@ -114,17 +116,18 @@ Despite using a deep learning library, I am not using any hidden layers to avoid
 of any deep learning capabilities. However, batching is useful because it helps handle a larger part
 of the dataset.
 ```{r}
-nn <- neuralnetwork(X, y, NA, regression = FALSE, batch.size = 64, n.epochs = 20)
+nn <- neuralnetwork(X, y, c(50), regression = FALSE, batch.size = 64, n.epochs = 20)
 ```
 
 ```{r}
 test_pred <- max.col(predict(nn, test[, feature_cols])$probabilities)
 test_true <- test[,label_col]
-mean(test_pred == test_true)
+mean(test_pred == as.integer(test_true))
 ```
 
-Unfortunately, we did not make any good predictions with this setup. It is clear we need much more representational power in order to represent this data set.
+Accuracy received: 37.9%
 
+This means our model is making decent predictions, but it clearly lacks representational power.
 
 
 
