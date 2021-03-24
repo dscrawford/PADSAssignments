@@ -1,14 +1,15 @@
 ---
 title: "CS 6301 Assignment 2"
-output: html_notebook
 author: "Daniel Crawford (dsc160130), Abhishek Thurlapati (vxt160630)"
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r}
+#Grabs the cifar-10 dataset 
 cifar_dir <- "cifar-10-batches-bin/"
-```
 
-```{r}
 if (!dir.exists(cifar_dir)) {
   download.file('http://www.cs.utoronto.ca/~kriz/cifar-10-binary.tar.gz', 'cifar-10.tar.gz')
   untar('cifar-10.tar.gz')
@@ -16,12 +17,15 @@ if (!dir.exists(cifar_dir)) {
 ```
 
 ```{r}
+#Automatically installs the ANN2 package for neural networks
 if (!("ANN2" %in% installed.packages())) {
-  install.packages("ANN2")
+  install.packages("ANN2", dependencies = TRUE)
 }
 ```
 
-
+```{r}
+library(ANN2)
+```
 It is hard to read a massive dataset like cifar10, so we will take portions of it instead for this part.
 
 ```{r}
@@ -35,6 +39,7 @@ cifar10_labels <- rep(0, 10000 * batches_to_read)
 ```
 
 ```{r}
+#Reads a small batch of the images from the dataset to work with locally
 read_cifar_batch <- function (file) {
   f <- file(file, "rb")
   
@@ -54,6 +59,7 @@ read_cifar_batch <- function (file) {
 ```
 
 ```{r}
+#Reads in batch 1 images
 for (i in 1:batches_to_read) {
   if (i == 6) {
     file <- paste(cifar_dir,"test_batch", ".bin", sep="")
@@ -70,43 +76,41 @@ for (i in 1:batches_to_read) {
 ```
 
 ```{r}
+#Grabs the labels of the images
 label_names <- read.table("cifar-10-batches-bin/batches.meta.txt")
 ```
 
 ```{r}
+#Creates a df of the cifar-10 data
 df <- data.frame(cifar10, label=as.factor(cifar10_labels))
 ```
 
-
 ```{r}
+#Normalizes the data
 df[,1:(32 * 32 * 3)] <- df[,1:(32*32*3)] / 255
-```
 
-```{r}
 split_index = as.integer(nrow(df) * 0.8)
 ```
 
-
 ```{r}
+#Splits the data into train and test
 train <- df[1:split_index, ]
 test <- df[split_index:nrow(df), ]
 ```
 
 ```{r}
+#Displayes df
 df[split_index:nrow(df),]
 ```
 
 ```{r}
-library(ANN2)
-```
-
-```{r}
+#Grabs the columns of the predictors and the labels
 feature_cols <- 1:(32*32*3)
 label_col <- 32*32*3+1
 ```
 
-
 ```{r}
+#Grabs the x and y of the training data
 N <- nrow(train)
 X <- train[1:N,feature_cols]
 y <- train[1:N,label_col]
@@ -116,10 +120,12 @@ Despite using a deep learning library, I am not using any hidden layers to avoid
 of any deep learning capabilities. However, batching is useful because it helps handle a larger part
 of the dataset.
 ```{r}
+#Creates the neural network model
 nn <- neuralnetwork(X, y, c(50), regression = FALSE, batch.size = 64, n.epochs = 20)
 ```
 
 ```{r}
+#Grabs the predicted and true values of the dataset and calculates metrics
 test_pred <- max.col(predict(nn, test[, feature_cols])$probabilities)
 test_true <- test[,label_col]
 mean(test_pred == as.integer(test_true))
@@ -128,6 +134,3 @@ mean(test_pred == as.integer(test_true))
 Accuracy received: 37.9%
 
 This means our model is making decent predictions, but it clearly lacks representational power.
-
-
-
