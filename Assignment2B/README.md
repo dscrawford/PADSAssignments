@@ -11,4 +11,4 @@ Assignment2B_Iterations.pdf contains the table of model iterations, and the goog
 In the colab code, you can see the table of the images with their associated predictions.
 
 # Google Colab Link
-https://colab.research.google.com/drive/1hjI-t8vIPWCvmvTHFoNBVmuTIVJo7RWb#scrollTo=5cw2oMqI--2v
+https://colab.research.google.com/drive/1hjI-t8vIPWCvmvTHFoNBVmuTIVJo7RWb?usp=sharing
