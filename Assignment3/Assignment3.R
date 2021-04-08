@@ -27,3 +27,4 @@ qplot(sentiment$ave_sentiment,   geom="histogram",binwidth=0.1,main="Sentiment F
 #Can do overall level sentiment if i join all the tweets together of a certain time i guess
 #Or can do sentiment of tweets at a certain time and find the avg sentiment of that time period. 
 #We need to explore the rtweets and sentimentr package to see if there are other stuff we can analyze
+#We can keep filtering groups from the tweets df and find the avg sentiments and display those as our 
