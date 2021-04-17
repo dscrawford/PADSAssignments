@@ -1,3 +1,4 @@
+# Daniel Crawford (dsc160130) and Abhishek Thurlapati (vxt)
 #install.packages('sentimentr')
 #install.packages('srtweet')
 library(rtweet)
