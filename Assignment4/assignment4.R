@@ -26,11 +26,28 @@ plot(y ~ x, data=rgbImage, main="Picture with 10 kmeans centers",
      col = rgb(rgbImage[c("r.value", "g.value", "b.value")]), 
      asp = 1, pch = ".")
 
-# PCA
-r <- rgbImage$r.value
-g <- rgbImage$g.value
-b <- rgbImage$b.value
+# PCA #
+ncol(readImage)
+nrow(readImage)
 
+#Extracts individual color matricies
+r <- readImage[,,1]
+g <- readImage[,,2]
+b <- readImage[,,3]
+
+#PCA is performed on each color value matrix
 r.pca <- prcomp(r, center = FALSE)
 g.pca <- prcomp(g, center = FALSE)
-b.pca <- prcomp(b, center = FALSE0)
+b.pca <- prcomp(b, center = FALSE)
+
+#Collects pca objects into a list
+rgb.pca <- list(r.pca, g.pca, b.pca)
+
+#Compress the image
+for (i in seq.int(3, round(nrow(readImage) - 10), length.out = 10)) {
+  pca.img <- sapply(rgb.pca, function(j) {
+    compressed.img <- j$x[,1:i] %*% t(j$rotation[,1:i])
+  }, simplify = 'array')
+  
+  writeJPEG(pca.img, paste('image_compressed_', round(i,0), '_components.jpg', sep = ''))
+}
