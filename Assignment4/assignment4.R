@@ -63,7 +63,7 @@ print_file_size <- function(file_name) {
   print(paste(file_name, " size (in KB): ", as.double(file.info(file_name)["size"]) / 1024))
 }
 
-file_names <- c("photo.png", 
+file_names <- c("photo.jpg", 
   sapply(X = c(3, 5, 10, 20, 30),
          FUN= function(i) paste('photo_kmeans_', i, '.jpg', sep = '')), 
   sapply(X = seq.int(3, round(nrow(readImage) - 10), length.out = 5),
