@@ -98,7 +98,14 @@ plot(SPY_30$date,
      main="Buy and Hold vs. 100 Day SMA Strategy",
      xlim=c(min(stock_returns_monthly$date), max(stock_returns_monthly$date)),
      ylim=c(0, max(str1_money, str2_money)),
-     col="blue")
+     col="blue"
+     )
+legend(
+  x="topleft",
+  legend = c("Buy and Hold (Strategy 1)", "100 Day SMA (Strategy 2)"),
+  lty = c(1,1),
+  col = c("red","blue")
+)
 lines(stock_returns_monthly$date, 
       str1_money, 
       type="l", 
