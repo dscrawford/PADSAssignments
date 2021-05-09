@@ -100,22 +100,27 @@ plot(SPY_30$date,
      ylim=c(0, max(str1_money, str2_money)),
      col="blue"
      )
-legend(
-  x="topleft",
-  legend = c("Buy and Hold (Strategy 1)", "100 Day SMA (Strategy 2)"),
-  lty = c(1,1),
-  col = c("red","blue")
-)
 lines(stock_returns_monthly$date, 
       str1_money, 
       type="l", 
       col="red",
       xlim=c(min(stock_returns_monthly$date), max(min(stock_returns_monthly$date))),
       ylim=c(0, max(str1_money, str2_money)))
+legend(
+  x="topleft",
+  legend = c("Buy and Hold (Strategy 1)", "100 Day SMA (Strategy 2)"),
+  lty = c(1,1),
+  col = c("red","blue")
+)
 
 # The total money accumulated at the end of 30 years using the 
 # different strategies.
-cat(paste("Buy and Hold Strategy: ", round(str1_money[length(str1_money)], 2),
+cat(paste("Buy and Hold Strategy: ", format(str1_money[length(str1_money)],
+                                            big.mark = ",",
+                                            scientific = FALSE),
           "\n",
-          "100 SMA Strategy     : ", round(str2_money[length(str2_money)], 2),
+          "100 SMA Strategy     : ", format(str2_money[length(str2_money)],
+                                            big.mark = ",",
+                                            scientific = FALSE),
           sep=""))
+
