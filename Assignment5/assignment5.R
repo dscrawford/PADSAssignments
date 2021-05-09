@@ -65,7 +65,7 @@ for (i in 1:nrow(SPY_30)) {
   }
   if (holding) {
   str2_curr_money = str2_curr_money + 
-    (str2_curr_money * portfolio_returns_daily$Ra[i])
+    (str2_curr_money * stock_returns_daily$Ra[i])
   }
   
   # If the stock line goes above the current SMA line -> Buy.
